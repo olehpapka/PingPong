@@ -3,12 +3,14 @@
 
 #include "GameElements/Ball.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "GameElements/Board.h"
 
 ABall::ABall()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
+	RootComponent = BallMesh;
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 
@@ -40,6 +42,12 @@ void ABall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
 
 	FVector ReflectedVelocity = CurrentVelocity.MirrorByVector(Hit.ImpactNormal);
 
-	float Speed = CurrentVelocity.Size();
+	const double Speed = CurrentVelocity.Size();
 	ProjectileMovement->Velocity = ReflectedVelocity.GetSafeNormal() * Speed;
+
+	ABoard* Board = Cast<ABoard>(OtherActor);
+	if (IsValid(Board))
+	{
+		BallTouchedByPlayer.ExecuteIfBound();
+	}
 }

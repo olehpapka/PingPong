@@ -15,19 +15,17 @@ ABoard::ABoard()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
-
 	BoardMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BoardMesh"));
-	BoardMesh->SetupAttachment(RootComponent);
+	RootComponent = BoardMesh;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetupAttachment(BoardMesh);
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
 	GoalBox = CreateDefaultSubobject<UBoxComponent>(TEXT("GoalBox"));
-	GoalBox->SetupAttachment(RootComponent);
+	GoalBox->SetupAttachment(BoardMesh);
 
 	bReplicates = true;
 }
@@ -39,16 +37,23 @@ void ABoard::Move(EMoveDirection Direction)
 		return;
 	}
 
+	int32 SignModifier = 0;
 	if (Direction == EMoveDirection::Left)
 	{
-		BoardPosition += GetActorRightVector().GetSafeNormal() * MoveStep * -1;
+		SignModifier = -1;
 	}
 	else if (Direction == EMoveDirection::Right)
 	{
-		BoardPosition += GetActorRightVector().GetSafeNormal() * MoveStep;
+		SignModifier = 1;
 	}
 
-	SetActorLocation(BoardPosition, true);
+	FVector DeltaToAdd = GetActorRightVector().GetSafeNormal() * MoveStep * SignModifier;
+	
+	bool bResult = SetActorLocation(BoardPosition + DeltaToAdd, true);
+	if (bResult)
+	{
+		BoardPosition += DeltaToAdd;
+	}
 }
 
 void ABoard::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -67,11 +72,29 @@ void ABoard::BeginPlay()
 		BoardPosition = GetActorLocation();
 		GoalBox->OnComponentBeginOverlap.AddDynamic(this, &ABoard::OnGoalBoxOverlap);
 	}
+	else
+	{
+		FLinearColor BoardColor;
+		if (GetController())
+		{
+			BoardColor = FLinearColor::Green;
+		}
+		else
+		{
+			BoardColor = FLinearColor::Red;
+		}
+
+		UMaterialInstanceDynamic* DynMaterial = BoardMesh->CreateAndSetMaterialInstanceDynamic(0);
+		if (IsValid(DynMaterial))
+		{
+			DynMaterial->SetVectorParameterValue("Color", BoardColor);
+		}
+	}
 }
 
 void ABoard::OnRep_BoardPosition()
 {
-	SetActorLocation(BoardPosition, true);
+	SetActorLocation(BoardPosition);
 }
 
 void ABoard::OnGoalBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

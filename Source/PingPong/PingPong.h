@@ -14,7 +14,7 @@ struct FPlayerScore
 	TObjectPtr<APlayerState> PlayerState;
 
 	UPROPERTY()
-	int32 PlayerScore;
+	int32 PlayerScore = 0;
 };
 
 UENUM()

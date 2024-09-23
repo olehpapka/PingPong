@@ -41,10 +41,12 @@ private:
 	TObjectPtr<ABall> Ball;
 
 	UPROPERTY(EditDefaultsOnly)
-	FVector2D BallSpawnForwardRotation = FVector2D(-50.0, 50.0);
+	FVector2D BallSpawnRotation = FVector2D(-50.0, 50.0);
 
 	UPROPERTY(EditDefaultsOnly)
-	FVector2D BallSpawnBackwardRotation = FVector2D(220.0, 320.0);
+	float BallUntouchedTime = 15.f;
+
+	FTimerHandle BallUntouchedTimerHandle;
 
 	void SpawnBall();
 

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "BoardPlayerContoller.generated.h"
+#include "BoardPlayerController.generated.h"
 
 class UInputAction;
 class UInputMappingContext;
@@ -12,10 +12,10 @@ struct FInputActionValue;
 
 enum class EMoveDirection : uint8;
 
-DECLARE_MULTICAST_DELEGATE(FOnPlayerStateReplicated);
+DECLARE_MULTICAST_DELEGATE(FOnGameStateReady);
 
 UCLASS()
-class PINGPONG_API ABoardPlayerContoller : public APlayerController
+class PINGPONG_API ABoardPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
@@ -26,9 +26,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ShowInProgressWidget();
 
-	virtual void OnRep_PlayerState() override;
-
-	FOnPlayerStateReplicated OnPlayerStateReplicated;
+	FOnGameStateReady OnGameStateReady;
 
 protected:
 	virtual void BeginPlay() override;

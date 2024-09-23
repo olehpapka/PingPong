@@ -5,7 +5,7 @@
 #include "PingPongGameState.h"
 #include "Components/TextBlock.h"
 #include "GameFramework/PlayerState.h"
-#include "BoardPlayerContoller.h"
+#include "BoardPlayerController.h"
 
 void UScoreWidget::NativeOnInitialized()
 {
@@ -18,10 +18,10 @@ void UScoreWidget::NativeOnInitialized()
 	}
 	else
 	{
-		ABoardPlayerContoller* PlayerController = GetOwningPlayer<ABoardPlayerContoller>();
+		ABoardPlayerController* PlayerController = GetOwningPlayer<ABoardPlayerController>();
 		if (IsValid(PlayerController))
 		{
-			PlayerController->OnPlayerStateReplicated.AddWeakLambda(this, [this]() 
+			PlayerController->OnGameStateReady.AddWeakLambda(this, [this]()
 				{
 					APingPongGameState* GameState = GetWorld()->GetGameState<APingPongGameState>();
 					if (IsValid(GameState))
@@ -37,13 +37,14 @@ void UScoreWidget::OnScoresUpdate(const TArray<FPlayerScore>& NewPlayerScores)
 {
 	for (const FPlayerScore& PlayerScore : NewPlayerScores)
 	{
+		const FText& Score = FText::FromString(FString::FromInt(PlayerScore.PlayerScore));
 		if (PlayerScore.PlayerState == GetOwningPlayerState())
 		{
-			OwnScoreText->SetText(FText::FromString(FString::FromInt(PlayerScore.PlayerScore)));
+			OwnScoreText->SetText(Score);
 		}
 		else
 		{
-			OpponentScoreText->SetText(FText::FromString(FString::FromInt(PlayerScore.PlayerScore)));
+			OpponentScoreText->SetText(Score);
 		}
 	}
 }

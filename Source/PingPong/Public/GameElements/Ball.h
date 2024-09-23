@@ -8,6 +8,8 @@
 
 class UProjectileMovementComponent;
 
+DECLARE_DELEGATE(FBallTouchedByPlayer);
+
 UCLASS()
 class PINGPONG_API ABall : public AActor
 {
@@ -17,6 +19,8 @@ public:
 	ABall();
 
 	void ResetVelocity();
+
+	FBallTouchedByPlayer BallTouchedByPlayer;
 
 protected:
 	virtual void BeginPlay() override;

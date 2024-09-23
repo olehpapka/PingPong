@@ -22,6 +22,9 @@ public:
 
 	FOnPlayerScoresChanged OnPlayerScoresChanged;
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerScores)
 	TArray<FPlayerScore> PlayerScores;

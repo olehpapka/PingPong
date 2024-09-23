@@ -3,6 +3,8 @@
 
 #include "PingPongGameState.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/PlayerState.h"
+#include "BoardPlayerController.h"
 
 void APingPongGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -15,12 +17,19 @@ void APingPongGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 
-	if (!HasAuthority())
+	if (HasAuthority())
 	{
-		return;
+		PlayerScores.Add(FPlayerScore{ PlayerState, 0 });
 	}
-
-	PlayerScores.Add(FPlayerScore{ PlayerState, 0 });
+	else
+	{
+		ABoardPlayerController* PlayerController = Cast<ABoardPlayerController>(PlayerState->GetPlayerController());
+		if (IsValid(PlayerController))
+		{
+			PlayerController->OnGameStateReady.Broadcast();
+		}
+	}
+	
 }
 
 void APingPongGameState::PlayerMissedGoal(APlayerState* PlayerState)
@@ -38,6 +47,28 @@ void APingPongGameState::PlayerMissedGoal(APlayerState* PlayerState)
 			break;
 		}
 	}
+}
+
+void APingPongGameState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//if (!HasAuthority())
+	//{
+	//	for (APlayerState* PlayerState : PlayerArray)
+	//	{
+	//		if (!IsValid(PlayerState))
+	//		{
+	//			continue;
+	//		}
+
+	//		ABoardPlayerController* PlayerController = Cast<ABoardPlayerController>(PlayerState->GetPlayerController());
+	//		if (IsValid(PlayerController))
+	//		{
+	//			PlayerController->OnGameStateReplicated.Broadcast();
+	//		}
+	//	}
+	//}
 }
 
 void APingPongGameState::OnRep_PlayerScores()

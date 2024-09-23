@@ -4,7 +4,7 @@
 #include "PingPongGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
-#include "BoardPlayerContoller.h"
+#include "BoardPlayerController.h"
 #include "GameFramework/GameState.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -31,6 +31,8 @@ void APingPongGameMode::ResetBall()
 		Ball->SetActorLocation(BallTransform.GetLocation());
 		Ball->SetActorRotation(BallTransform.GetRotation().Rotator());
 		Ball->ResetVelocity();
+
+		GetWorldTimerManager().SetTimer(BallUntouchedTimerHandle, this, &APingPongGameMode::ResetBall, BallUntouchedTime, true);
 	}
 }
 
@@ -53,7 +55,7 @@ void APingPongGameMode::PostLogin(APlayerController* NewPlayer)
 
 	if (NumPlayers == 1)
 	{
-		ABoardPlayerContoller* BoardPlayerController = Cast<ABoardPlayerContoller>(NewPlayer);
+		ABoardPlayerController* BoardPlayerController = Cast<ABoardPlayerController>(NewPlayer);
 		if (IsValid(BoardPlayerController))
 		{
 			BoardPlayerController->Client_WaitForStart();
@@ -61,15 +63,22 @@ void APingPongGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 	else if (NumPlayers == 2)
 	{
-		if (IsValid(GameState))
+		if (!IsValid(GameState))
 		{
-			for (APlayerState* PlayerState : GameState->PlayerArray)
+			return;
+		}
+
+		for (APlayerState* PlayerState : GameState->PlayerArray)
+		{
+			if (!IsValid(PlayerState))
 			{
-				ABoardPlayerContoller* BoardPlayerController = Cast<ABoardPlayerContoller>(PlayerState->GetOwner());
-				if (IsValid(BoardPlayerController))
-				{
-					BoardPlayerController->Client_ShowInProgressWidget();
-				}
+				continue;
+			}
+
+			ABoardPlayerController* BoardPlayerController = Cast<ABoardPlayerController>(PlayerState->GetOwner());
+			if (IsValid(BoardPlayerController))
+			{
+				BoardPlayerController->Client_ShowInProgressWidget();
 			}
 		}
 
@@ -78,8 +87,17 @@ void APingPongGameMode::PostLogin(APlayerController* NewPlayer)
 }
 
 void APingPongGameMode::SpawnBall()
-{	
+{
 	Ball = GetWorld()->SpawnActor<ABall>(BallClass, GetBallSpawnTransform());
+	if (IsValid(Ball))
+	{
+		Ball->BallTouchedByPlayer.BindWeakLambda(this, [this]()
+			{
+				GetWorldTimerManager().SetTimer(BallUntouchedTimerHandle, this, &APingPongGameMode::ResetBall, BallUntouchedTime, true);
+			});
+	}
+
+	GetWorldTimerManager().SetTimer(BallUntouchedTimerHandle, this, &APingPongGameMode::ResetBall, BallUntouchedTime, true);
 }
 
 FTransform APingPongGameMode::GetBallSpawnTransform()
@@ -100,24 +118,24 @@ FTransform APingPongGameMode::GetBallSpawnTransform()
 		SpawnTransform = BallSpawnPoint->GetActorTransform();
 	}
 
-	FRotator Rotation;
-	Rotation.Pitch = 0;
-	Rotation.Roll = 0;
+	FVector ForwardVector = BallSpawnPoint->GetActorForwardVector();
 
+	FVector Direction;
+
+	const double RandomYaw = FMath::RandRange(BallSpawnRotation.X, BallSpawnRotation.Y);
 	if (FMath::RandBool())
 	{
-		Rotation.Yaw = FMath::RandRange(BallSpawnForwardRotation.X, BallSpawnForwardRotation.Y);
+		Direction = ForwardVector.RotateAngleAxis(RandomYaw, FVector::UpVector);
 	}
 	else
 	{
-		Rotation.Yaw = FMath::RandRange(BallSpawnBackwardRotation.X, BallSpawnBackwardRotation.Y);
+		Direction = -ForwardVector.RotateAngleAxis(RandomYaw, FVector::UpVector);
 	}
 
-	if (Rotation.Yaw > 180.0)
-	{
-		Rotation.Yaw -= 360.0;
-	}
-
+	FRotator Rotation;
+	Rotation.Pitch = 0;
+	Rotation.Roll = 0;
+	Rotation = Direction.Rotation();
 	SpawnTransform.SetRotation(Rotation.Quaternion());
 	return SpawnTransform;
 }

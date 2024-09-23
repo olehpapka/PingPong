@@ -1,14 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BoardPlayerContoller.h"
+#include "BoardPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PingPong/PingPong.h"
 #include "GameElements/Board.h"
 #include "Blueprint/UserWidget.h"
 
-void ABoardPlayerContoller::Client_WaitForStart_Implementation()
+void ABoardPlayerController::Client_WaitForStart_Implementation()
 {
 	UUserWidget* Widget = CreateWidget<UUserWidget>(this, WaitingWidget);
 	if (IsValid(Widget))
@@ -18,7 +18,7 @@ void ABoardPlayerContoller::Client_WaitForStart_Implementation()
 	}
 }
 
-void ABoardPlayerContoller::Client_ShowInProgressWidget_Implementation()
+void ABoardPlayerController::Client_ShowInProgressWidget_Implementation()
 {
 	if (IsValid(CurrentWidget))
 	{
@@ -33,14 +33,7 @@ void ABoardPlayerContoller::Client_ShowInProgressWidget_Implementation()
 	}
 }
 
-void ABoardPlayerContoller::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	OnPlayerStateReplicated.Broadcast();
-}
-
-void ABoardPlayerContoller::BeginPlay()
+void ABoardPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -50,23 +43,23 @@ void ABoardPlayerContoller::BeginPlay()
 	}
 }
 
-void ABoardPlayerContoller::SetupInputComponent()
+void ABoardPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponent->BindAction(MoveLeftAction, ETriggerEvent::Started, this, &ABoardPlayerContoller::MoveInternal, EMoveDirection::Left);
-		EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Started, this, &ABoardPlayerContoller::MoveInternal, EMoveDirection::Right);
+		EnhancedInputComponent->BindAction(MoveLeftAction, ETriggerEvent::Started, this, &ABoardPlayerController::MoveInternal, EMoveDirection::Left);
+		EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Started, this, &ABoardPlayerController::MoveInternal, EMoveDirection::Right);
 	}
 }
 
-void ABoardPlayerContoller::MoveInternal(const FInputActionValue& Value, EMoveDirection Direction)
+void ABoardPlayerController::MoveInternal(const FInputActionValue& Value, EMoveDirection Direction)
 {
 	Server_MoveBoard(Direction);
 }
 
-void ABoardPlayerContoller::Server_MoveBoard_Implementation(EMoveDirection Direction)
+void ABoardPlayerController::Server_MoveBoard_Implementation(EMoveDirection Direction)
 {
 	ABoard* Board = Cast<ABoard>(GetPawn());
 	if (IsValid(Board))
