@@ -17,6 +17,13 @@ ABall::ABall()
 	bReplicates = true;
 }
 
+void ABall::NetMulticast_ResetBall_Implementation(const FTransform& NewBallTransform)
+{
+	SetActorLocation(NewBallTransform.GetLocation());
+	SetActorRotation(NewBallTransform.GetRotation().Rotator());
+	ResetVelocity();
+}
+
 void ABall::ResetVelocity()
 {
 	if (IsValid(ProjectileMovement))
@@ -30,10 +37,7 @@ void ABall::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		BallMesh->OnComponentHit.AddDynamic(this, &ABall::OnBallHit);
-	}
+	BallMesh->OnComponentHit.AddDynamic(this, &ABall::OnBallHit);
 }
 
 void ABall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -42,12 +46,18 @@ void ABall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
 
 	FVector ReflectedVelocity = CurrentVelocity.MirrorByVector(Hit.ImpactNormal);
 
-	const double Speed = CurrentVelocity.Size();
-	ProjectileMovement->Velocity = ReflectedVelocity.GetSafeNormal() * Speed;
-
-	ABoard* Board = Cast<ABoard>(OtherActor);
-	if (IsValid(Board))
+	if (IsValid(ProjectileMovement))
 	{
-		BallTouchedByPlayer.ExecuteIfBound();
+		const double Speed = ProjectileMovement->InitialSpeed;
+		ProjectileMovement->Velocity = ReflectedVelocity.GetSafeNormal() * Speed;
+	}
+	
+	if (HasAuthority())
+	{
+		ABoard* Board = Cast<ABoard>(OtherActor);
+		if (IsValid(Board))
+		{
+			BallTouchedByPlayer.ExecuteIfBound();
+		}
 	}
 }

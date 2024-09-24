@@ -18,6 +18,9 @@ class PINGPONG_API ABall : public AActor
 public:	
 	ABall();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulticast_ResetBall(const FTransform& NewBallTransform);
+
 	void ResetVelocity();
 
 	FBallTouchedByPlayer BallTouchedByPlayer;

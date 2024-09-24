@@ -27,10 +27,7 @@ void APingPongGameMode::ResetBall()
 {
 	if (IsValid(Ball))
 	{
-		const FTransform& BallTransform = GetBallSpawnTransform();
-		Ball->SetActorLocation(BallTransform.GetLocation());
-		Ball->SetActorRotation(BallTransform.GetRotation().Rotator());
-		Ball->ResetVelocity();
+		Ball->NetMulticast_ResetBall(GetBallSpawnTransform());
 
 		GetWorldTimerManager().SetTimer(BallUntouchedTimerHandle, this, &APingPongGameMode::ResetBall, BallUntouchedTime, true);
 	}
