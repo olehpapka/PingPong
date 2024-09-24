@@ -42,13 +42,13 @@ void ABall::BeginPlay()
 
 void ABall::OnBallHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	FVector CurrentVelocity = ProjectileMovement->Velocity;
-
-	FVector ReflectedVelocity = CurrentVelocity.MirrorByVector(Hit.ImpactNormal);
-
 	if (IsValid(ProjectileMovement))
 	{
+		FVector CurrentVelocity = ProjectileMovement->Velocity;
+
+		FVector ReflectedVelocity = CurrentVelocity.MirrorByVector(Hit.ImpactNormal);
 		const double Speed = ProjectileMovement->InitialSpeed;
+
 		ProjectileMovement->Velocity = ReflectedVelocity.GetSafeNormal() * Speed;
 	}
 	
