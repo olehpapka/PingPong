@@ -49,28 +49,6 @@ void APingPongGameState::PlayerMissedGoal(APlayerState* PlayerState)
 	}
 }
 
-void APingPongGameState::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//if (!HasAuthority())
-	//{
-	//	for (APlayerState* PlayerState : PlayerArray)
-	//	{
-	//		if (!IsValid(PlayerState))
-	//		{
-	//			continue;
-	//		}
-
-	//		ABoardPlayerController* PlayerController = Cast<ABoardPlayerController>(PlayerState->GetPlayerController());
-	//		if (IsValid(PlayerController))
-	//		{
-	//			PlayerController->OnGameStateReplicated.Broadcast();
-	//		}
-	//	}
-	//}
-}
-
 void APingPongGameState::OnRep_PlayerScores()
 {
 	OnPlayerScoresChanged.Broadcast(PlayerScores);

@@ -13,6 +13,7 @@ struct FInputActionValue;
 enum class EMoveDirection : uint8;
 
 DECLARE_MULTICAST_DELEGATE(FOnGameStateReady);
+DECLARE_MULTICAST_DELEGATE(FOnPlayerStateReplicated);
 
 UCLASS()
 class PINGPONG_API ABoardPlayerController : public APlayerController
@@ -26,7 +27,10 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ShowInProgressWidget();
 
+	virtual void OnRep_PlayerState() override;
+
 	FOnGameStateReady OnGameStateReady;
+	FOnPlayerStateReplicated OnPlayerStateReplicated;
 
 protected:
 	virtual void BeginPlay() override;

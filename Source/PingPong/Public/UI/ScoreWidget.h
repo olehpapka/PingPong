@@ -25,4 +25,6 @@ private:
 	TObjectPtr<UTextBlock> OpponentScoreText;
 
 	void OnScoresUpdate(const TArray<FPlayerScore>& NewPlayerScores);
+
+	void BindToScoresUpdate();
 };

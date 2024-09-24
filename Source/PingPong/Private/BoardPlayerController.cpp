@@ -33,6 +33,13 @@ void ABoardPlayerController::Client_ShowInProgressWidget_Implementation()
 	}
 }
 
+void ABoardPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	OnPlayerStateReplicated.Broadcast();
+}
+
 void ABoardPlayerController::BeginPlay()
 {
 	Super::BeginPlay();

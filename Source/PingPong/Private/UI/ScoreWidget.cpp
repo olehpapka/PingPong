@@ -23,11 +23,12 @@ void UScoreWidget::NativeOnInitialized()
 		{
 			PlayerController->OnGameStateReady.AddWeakLambda(this, [this]()
 				{
-					APingPongGameState* GameState = GetWorld()->GetGameState<APingPongGameState>();
-					if (IsValid(GameState))
-					{
-						GameState->OnPlayerScoresChanged.AddUObject(this, &UScoreWidget::OnScoresUpdate);
-					}
+					BindToScoresUpdate();
+				});
+
+			PlayerController->OnPlayerStateReplicated.AddWeakLambda(this, [this]()
+				{
+					BindToScoresUpdate();
 				});
 		}
 	}
@@ -45,6 +46,18 @@ void UScoreWidget::OnScoresUpdate(const TArray<FPlayerScore>& NewPlayerScores)
 		else
 		{
 			OpponentScoreText->SetText(Score);
+		}
+	}
+}
+
+void UScoreWidget::BindToScoresUpdate()
+{
+	APingPongGameState* GameState = GetWorld()->GetGameState<APingPongGameState>();
+	if (IsValid(GameState))
+	{
+		if (!GameState->OnPlayerScoresChanged.IsBoundToObject(this))
+		{
+			GameState->OnPlayerScoresChanged.AddUObject(this, &UScoreWidget::OnScoresUpdate);
 		}
 	}
 }
